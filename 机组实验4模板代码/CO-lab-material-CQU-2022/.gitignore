@@ -1,8 +1,0 @@
-*.ip_user_files/
-*.runs/
-*.cache/
-*.log
-*.jou
-*.vcd
-xilinx_ip
-*.sim
