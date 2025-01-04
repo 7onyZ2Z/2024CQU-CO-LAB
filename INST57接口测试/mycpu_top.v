@@ -24,8 +24,7 @@ module mycpu_top(
 // �?个例�?
 	wire [31:0] pc;
 	wire [31:0] instr;
-	wire memwrite;
-	wire memread;
+	wire mem_enM;
 	wire [3:0] select;
 	wire [31:0] aluout, writedata, readdata;
     wire [31:0] pcW;
@@ -34,39 +33,28 @@ module mycpu_top(
 	wire [31:0] resultW;
 	wire no_dcache;
     mips mips(
-        .clk(~clk),
+        .clk(clk),
         .rst(~resetn),
         .ext_int(ext_int),
-        //instr
-        // .inst_en(inst_en),
         .pcF(pc),                    //pcF
         .instrF(instr),              //instrF
-        //data
-        // .data_en(data_en),
-        .memwriteM(memwrite),
-        .memreadM(memread),
+        .mem_enM(mem_enM),
         .aluoutM(aluout),
         .writedataM(writedata),
         .selectM(select),
         .readdataM(readdata),
         .pcW(pcW),.regwriteW(regwriteW),.writeregW(writeregW),.resultW(resultW)
     );
-    mmu mmu(
-        .inst_vaddr(pc),
-        .inst_paddr(inst_sram_addr),
-        .data_vaddr(aluout),
-        .data_paddr(data_sram_addr),
-        .no_dcache(no_dcache)
-    );
 
     assign inst_sram_en = 1'b1;     //如果有inst_en，就用inst_en
     assign inst_sram_wen = 4'b0;
+    assign inst_sram_addr = pc;
     assign inst_sram_wdata = 32'b0;
     assign instr = inst_sram_rdata;
 
-    assign data_sram_en = (memread|memwrite);     //?????data_en??????data_en
+    assign data_sram_en = mem_enM;     //?????data_en??????data_en
     assign data_sram_wen = select;
-    //assign data_sram_addr = aluout;
+    assign data_sram_addr = aluout;
     assign data_sram_wdata = writedata;
     assign readdata = data_sram_rdata;
     

@@ -32,12 +32,11 @@ module maindec(
 	output wire hilodst,hilowrite,hiloread,
 	output wire memread,
 	output wire rawrite,
-	output wire break,syscall,cp0we,cp0read,eret,
+	output wire breakM,syscall,cp0we,cp0read,eret,
 	output reg invalid
-//	output wire[1:0] aluop
     );
     
-    //»ù´¡Æß¸ö¿ØÖÆÐÅºÅ+1
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ß¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½+1
 	reg[7:0] controls;
 	assign {regwrite,regdst,alusrc,branch,memwrite,memtoreg,jump,jalr} = controls;
 	always @(*) begin
@@ -47,16 +46,11 @@ module maindec(
 			    case(funct)
 			        `JR: controls <= 8'b00010010;
 			        `JALR: controls <= 8'b11010011;
-			        `BREAK: controls <= 8'b11010011;
+			        `breakM: controls <= 8'b11010011;
 			        `SYSCALL: controls <= 8'b11010011;
                     default: controls <= 8'b11000000;//R-TYRE
                 endcase
 			end
-			//6'b100011:controls <= 8'b10100100;//LW
-			//6'b101011:controls <= 8'b00101000;//SW
-			//6'b000100:controls <= 8'b00010000;//BEQ
-			//6'b000010:controls <= 8'b00000010;//J
-			//6'b001000:controls <= 7'b1010000;//ADDI
 			`ANDI:controls <= 8'b10100000;// ANDI
 			`XORI:controls <= 8'b10100000;// XORI
 			`LUI:controls <= 8'b10100000;// LUI
@@ -91,10 +85,10 @@ module maindec(
 		endcase
 	end
 	
-	//andi,xori,lui,oriÔËËãÎªÎÞ·ûºÅÀ©Õ¹
+	//andi,xori,lui,oriï¿½ï¿½ï¿½ï¿½Îªï¿½Þ·ï¿½ï¿½ï¿½ï¿½ï¿½Õ¹
 	assign sign_ext = | (op[5:2] ^ 4'b0011); 
 
-	//hilo¼Ä´æÆ÷
+	//hiloï¿½Ä´ï¿½ï¿½ï¿½
     assign hilodst = ((op == `R_TYPE && funct == `MTHI) || 
                    (op == `R_TYPE && funct == `MFHI));
     assign hilowrite = ((op == `R_TYPE && funct == `MTHI) ||
@@ -108,16 +102,16 @@ module maindec(
                     
     assign memread = ((op == `LB)||(op==`LBU)||(op == `LH)||(op==`LHU)||(op == `LW));                 
     
-    //Ð´»Ø31ºÅ¼Ä´æÆ÷
+    //Ð´ï¿½ï¿½31ï¿½Å¼Ä´ï¿½ï¿½ï¿½
     assign rawrite = ((op == `JAL) || 
                      (op == `REGIMM_INST && rt == `BGEZAL) ||
                      (op == `REGIMM_INST && rt == `BLTZAL));
               
-    // ×ÔÏÝÖ¸Áî
-    assign break = (op == `R_TYPE && funct == `BREAK); 
+    // ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
+    assign breakM = (op == `R_TYPE && funct == `breakM); 
     assign syscall = (op == `R_TYPE && funct == `SYSCALL);
               
-   // ÌØÈ¨Ö¸Áî
+   // ï¿½ï¿½È¨Ö¸ï¿½ï¿½
    assign cp0we = (instr[31:21] == 11'b0100_0000_100 && instr[10:0] == 11'b00000000000); //MTC0
    assign cp0read = (instr[31:21] == 11'b01000000000 && instr[10:0] == 11'b00000000000); //MFC0 
    assign eret = (instr == 32'b01000010000000000000000000011000); //ERET

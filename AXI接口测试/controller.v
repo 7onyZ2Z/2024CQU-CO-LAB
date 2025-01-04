@@ -29,7 +29,7 @@ module controller(
 	input wire[5:0] opD,functD,
 	input wire[4:0] rtD,
 	output wire pcsrcD,branchD,cmpresultD,jumpD,jalrD,rawriteD,
-    output wire breakD,syscallD,invalidD,eretD,
+    output wire breakMD,syscallD,invalidD,eretD,
 	//execute stage
 	input wire flushE, stallE,
 	output wire memtoregE,alusrcE,jalrE,rawriteE,
@@ -37,7 +37,6 @@ module controller(
 	output wire[4:0] alucontrolE,
 	output wire hilodstE,hilowriteE,hiloreadE,
 	output wire cp0readE,
-//	output wire divE,signed_divE,
 
 	//mem stage
 	input wire flushM, stallM,
@@ -53,14 +52,12 @@ module controller(
     );
 	
 	//decode stage
-//	wire[1:0] aluopD;
 	wire memtoregD,memwriteD,alusrcD,regdstD,regwriteD;
 	wire[4:0] alucontrolD;
 	wire hilodstD,hilowriteD,hiloreadD;
 	wire memreadD;
 	wire cp0weD,cp0readD;
-//	wire divD,signed_divD;
-	
+
 	//execute stage
 	wire memwriteE;
 	wire memreadE;
@@ -78,7 +75,7 @@ module controller(
 		hilodstD,hilowriteD,hiloreadD,
 		memreadD,
 		rawriteD,
-        breakD,syscallD,
+        breakMD,syscallD,
         cp0weD,cp0readD,eretD,invalidD
 		);
 	aludec ad(instrD,opD,functD,alucontrolD);

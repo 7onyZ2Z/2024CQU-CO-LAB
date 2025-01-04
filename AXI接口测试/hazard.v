@@ -23,6 +23,7 @@
 module hazard(
 	//fetch stage
 	output wire stallF,flushF,
+	input wire i_stall,
 	//decode stage
 	input wire[4:0] rsD,rtD,
 	input wire branchD,
@@ -49,13 +50,16 @@ module hazard(
     output stallM,flushM,
     input cp0weM,
     input wire[31:0] excepttypeM, 
+	input wire d_stall,
     output flushexceptM,
 	//write back stage
 	input wire[4:0] writeregW,
 	input wire regwriteW,
 	input hilodstW,hilowriteW,
 	output stallW,flushW,
-	input cp0weW
+	input cp0weW,
+
+	output longest_stall
     );
 
 	wire lwstallD,branchstallD,flushexcept;
@@ -102,21 +106,21 @@ module hazard(
 				(writeregE == rsD | writeregE == rtD) |
 				memtoregM &
 				(writeregM == rsD | writeregM == rtD));
-	assign  stallD = lwstallD | branchstallD | div_stallE;
-	assign  stallF = stallD;
-	assign  stallE = div_stallE;
-	assign  stallM = 0;
-	assign  stallW = 0;
-		//stalling D stalls all previous stages
+	
+	assign longest_stall = i_stall | d_stall | div_stallE ;
+
+	
+	assign  stallD = lwstallD | branchstallD |longest_stall;
+	assign  stallF = stallD & ~flushexceptM;
+	assign stallE = longest_stall; 
+	assign stallM = longest_stall;
+    assign stallW = longest_stall & ~flushexceptM;
+
     assign  flushexceptM = (|excepttypeM);
     assign flushF = flushexceptM;
     assign flushD = flushexceptM;
-	assign flushE = stallD & ~stallE | flushexceptM;
-	assign flushM = flushexceptM|div_stallE;
+	assign flushE = (lwstallD & ~longest_stall) | (branchstallD & ~longest_stall) | flushexceptM;
+	assign flushM = flushexceptM;
 	assign flushW = flushexceptM;
-		//stalling D flushes next stage
-	// Note: not necessary to stall D stage on store
-  	//       if source comes from load;
-  	//       instead, another bypass network could
-  	//       be added from W to M
+
 endmodule
